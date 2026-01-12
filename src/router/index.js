@@ -1,4 +1,4 @@
-﻿// src/router/index.js
+// src/router/index.js
 
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -238,7 +238,7 @@ const routes = [
           {
             path: 'teachers',
             name: 'TeacherManage',
-            component: () => import('../components/UserManage.vue'),
+            component: () => import('../components/TeacherManage.vue'),
             meta: { 
               title: '教师管理', 
               icon: 'School',
@@ -286,6 +286,18 @@ const routes = [
             name: 'FinancialReports',
             component: () => import('../components/FinancialReports.vue'),
             meta: { title: '财务报表', icon: 'PieChart' }
+          },
+          {
+            path: 'billing',
+            name: 'Billing',
+            component: () => import('../components/Billing.vue'),
+            meta: { title: '计费管理', icon: 'Wallet' }
+          },
+          {
+            path: 'settings',
+            name: 'FinancialSettings',
+            component: () => import('../components/FinancialSettings.vue'),
+            meta: { title: '财务设置', icon: 'Setting' }
           }
         ]
       },
@@ -326,6 +338,18 @@ const routes = [
             name: 'SystemSettings',
             component: () => import('../components/SystemSettings.vue'),
             meta: { title: '系统设置', icon: 'Tools' }
+          },
+          {
+            path: 'logs',
+            name: 'SystemLogs',
+            component: () => import('../components/SystemLogs.vue'),
+            meta: { title: '系统日志', icon: 'View' }
+          },
+          {
+            path: 'backup',
+            name: 'SystemBackup',
+            component: () => import('../components/SystemBackup.vue'),
+            meta: { title: '系统备份', icon: 'Download' }
           }
         ]
       },

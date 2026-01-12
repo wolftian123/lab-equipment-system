@@ -183,31 +183,31 @@
               </template>
               
               <!-- 教师：审批学生的申请 -->
-              <el-menu-item v-if="user.role === 'teacher'" index="/main/approval/student-approval">
+              <el-menu-item v-if="user.role === 'teacher'" index="/main/approval/students">
                 <el-icon><Avatar /></el-icon>
                 <template #title>学生申请审批</template>
               </el-menu-item>
               
               <!-- 设备管理员：审批教师/学生的申请 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/teacher-student-approval">
+              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/students">
                 <el-icon><User /></el-icon>
                 <template #title>教师/学生审批</template>
               </el-menu-item>
               
               <!-- 设备管理员：审批校外人员申请 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/external-admin-approval">
+              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/teachers">
                 <el-icon><Key /></el-icon>
                 <template #title>校外申请初审</template>
               </el-menu-item>
               
               <!-- 实验室负责人：审批校外人员申请 -->
-              <el-menu-item v-if="user.role === 'director'" index="/main/approval/external-final-approval">
+              <el-menu-item v-if="user.role === 'director'" index="/main/approval/external">
                 <el-icon><Key /></el-icon>
                 <template #title>校外申请终审</template>
               </el-menu-item>
               
               <!-- 审批历史（所有审批人员） -->
-              <el-menu-item v-if="user.role !== 'student' && user.role !== 'external'" index="/main/approval/history">
+              <el-menu-item v-if="user.role !== 'student' && user.role !== 'external'" index="/main/approval/students">
                 <el-icon><Clock /></el-icon>
                 <template #title>审批历史</template>
               </el-menu-item>
@@ -242,7 +242,7 @@
               
               <!-- 管理员：计费管理 -->
               <el-menu-item v-if="user.role === 'admin'" index="/main/financial/billing">
-                <el-icon><Calculator /></el-icon>
+                <el-icon><Money /></el-icon>
                 <template #title>计费管理</template>
               </el-menu-item>
               
@@ -267,15 +267,23 @@
                 <el-icon><Tools /></el-icon>
                 <span>设备管理</span>
               </template>
-              <el-menu-item index="/main/equipment/manage">
+              <el-menu-item index="/main/equipment-manage/list">
                 <el-icon><List /></el-icon>
                 <template #title>设备列表管理</template>
               </el-menu-item>
-              <el-menu-item index="/main/equipment/maintenance">
+              <el-menu-item index="/main/equipment-manage/maintenance">
                 <el-icon><Setting /></el-icon>
                 <template #title>设备维护</template>
               </el-menu-item>
-              <el-menu-item index="/main/equipment/status">
+              <el-menu-item index="/main/equipment-manage/add">
+                <el-icon><CirclePlus /></el-icon>
+                <template #title>新增设备</template>
+              </el-menu-item>
+              <el-menu-item index="/main/equipment-manage/audit">
+                <el-icon><DocumentChecked /></el-icon>
+                <template #title>设备审批</template>
+              </el-menu-item>
+              <el-menu-item index="/main/equipment-manage/status">
                 <el-icon><Monitor /></el-icon>
                 <template #title>设备状态</template>
               </el-menu-item>
@@ -291,25 +299,25 @@
               </template>
               
               <!-- 教师：管理自己的学生 -->
-              <el-menu-item v-if="user.role === 'teacher'" index="/main/user/students">
+              <el-menu-item v-if="user.role === 'teacher'" index="/main/user-manage/students">
                 <el-icon><Avatar /></el-icon>
                 <template #title>学生管理</template>
               </el-menu-item>
               
               <!-- 管理员：管理用户 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/user/manage">
-                <el-icon><Users /></el-icon>
+              <el-menu-item v-if="user.role === 'admin'" index="/main/user-manage/teachers">
+                <el-icon><User /></el-icon>
                 <template #title>用户管理</template>
               </el-menu-item>
               
               <!-- 实验室负责人：全部用户管理 -->
-              <el-menu-item v-if="user.role === 'director'" index="/main/user/all">
+              <el-menu-item v-if="user.role === 'director'" index="/main/user-manage/admins">
                 <el-icon><UserFilled /></el-icon>
                 <template #title>用户管理</template>
               </el-menu-item>
               
               <!-- 校外人员管理（管理员、实验室负责人） -->
-              <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/user/external">
+              <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/user-manage/external">
                 <el-icon><Key /></el-icon>
                 <template #title>校外人员管理</template>
               </el-menu-item>
@@ -318,7 +326,7 @@
 
           <!-- 报表统计（管理员、实验室负责人） -->
           <template v-if="user.role === 'admin' || user.role === 'director'">
-            <el-menu-item index="/main/reports">
+            <el-menu-item index="/main/report/usage">
               <el-icon><DataAnalysis /></el-icon>
               <template #title>报表统计</template>
             </el-menu-item>
@@ -453,7 +461,6 @@ import {
   DataLine,
   TrendCharts,
   Avatar,
-  Users,
   UserFilled,
   QuestionFilled,
   CircleCheck,
@@ -467,8 +474,7 @@ import {
   DataAnalysis,
   Upload,
   Key,
-  Wallet,
-  Calculator
+  Wallet
 } from '@element-plus/icons-vue';
 
 const router = useRouter();
