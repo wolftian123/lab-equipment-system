@@ -374,7 +374,7 @@ function generateUserData(formData) {
 
 // 生成token
 function generateToken(username) {
-  return `jnu_equipment_${username}_${Date.now()}_${Math.random().toString(36).substr(2)}`
+  return `jnu_equipment_${username}_${Math.random().toString(36).substr(2)}_${Date.now()}`
 }
 
 // 获取测试账号数据
