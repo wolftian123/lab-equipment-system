@@ -5,7 +5,7 @@
       <div class="header-left">
         <div class="logo">
           <el-icon size="28" color="#409eff"><Monitor /></el-icon>
-          <span class="logo-text">实验设备管理系统</span>
+          <span class="logo-text">江南大学实验室设备管理系统</span>
         </div>
       </div>
 
@@ -19,50 +19,6 @@
       </div>
 
       <div class="header-right">
-        <!-- 通知 -->
-        <el-dropdown trigger="click" class="notification-dropdown">
-          <div class="notification-icon">
-            <el-badge :value="3" :max="99">
-              <el-icon size="20"><Bell /></el-icon>
-            </el-badge>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>
-                <div class="notification-item">
-                  <el-icon><Message /></el-icon>
-                  <div>
-                    <p class="notification-title">新预约申请</p>
-                    <p class="notification-time">5分钟前</p>
-                  </div>
-                </div>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <div class="notification-item">
-                  <el-icon><Warning /></el-icon>
-                  <div>
-                    <p class="notification-title">设备维护提醒</p>
-                    <p class="notification-time">1小时前</p>
-                  </div>
-                </div>
-              </el-dropdown-item>
-              <!-- 校外人员缴费提醒 -->
-              <el-dropdown-item v-if="user.role === 'external'">
-                <div class="notification-item">
-                  <el-icon><Money /></el-icon>
-                  <div>
-                    <p class="notification-title">待缴费预约</p>
-                    <p class="notification-time">点击查看详情</p>
-                  </div>
-                </div>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
-                <div class="view-all">查看所有通知</div>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-
         <!-- 用户信息 -->
         <el-dropdown class="user-dropdown" @command="handleUserCommand">
           <div class="user-info">
@@ -118,13 +74,8 @@
           :collapse-transition="false"
           router
           @select="handleMenuSelect"
+          :unique-opened="true"
         >
-          <!-- 仪表盘（所有角色） -->
-          <el-menu-item index="/main/dashboard">
-            <el-icon><Odometer /></el-icon>
-            <template #title>仪表盘</template>
-          </el-menu-item>
-
           <!-- 设备查询（所有角色） -->
           <el-menu-item index="/main/equipment/list">
             <el-icon><Search /></el-icon>
@@ -139,208 +90,198 @@
               <el-badge v-if="user.role === 'external'" value="付费" type="warning" style="margin-left: 8px;" />
             </template>
             
-            <!-- 预约申请（非管理员和负责人） -->
-            <el-menu-item v-if="user.role !== 'admin' && user.role !== 'director'" index="/main/reservation/apply">
-              <template #title>
-                <span>预约申请</span>
-                <el-tag v-if="user.role === 'external'" size="small" type="danger" style="margin-left: 8px;">
-                  校外付费
-                </el-tag>
-              </template>
+            <el-menu-item index="/main/reservation/apply">
+              <el-icon><CirclePlus /></el-icon>
+              <template #title>预约申请</template>
             </el-menu-item>
             
-            <!-- 我的预约（非管理员和负责人） -->
-            <el-menu-item v-if="user.role !== 'admin' && user.role !== 'director'" index="/main/reservation/my">
+            <el-menu-item index="/main/reservation/my">
               <el-icon><List /></el-icon>
               <template #title>我的预约</template>
             </el-menu-item>
             
-            <!-- 校外人员缴费管理 -->
-            <el-menu-item v-if="user.role === 'external'" index="/main/reservation/payment">
-              <el-icon><Money /></el-icon>
-              <template #title>缴费管理</template>
+            <el-menu-item index="/main/reservation/history">
+              <el-icon><Histogram /></el-icon>
+              <template #title>预约历史</template>
             </el-menu-item>
           </el-sub-menu>
 
           <!-- 审批管理（教师、管理员、实验室负责人） -->
-          <template v-if="user.role === 'teacher' || isAdmin || user.role === 'director'">
-            <el-sub-menu index="approval">
-              <template #title>
-                <el-icon><DocumentChecked /></el-icon>
-                <span>审批管理</span>
-              </template>
-              
-              <!-- 教师：审批学生的申请 -->
-              <el-menu-item v-if="user.role === 'teacher'" index="/main/approval/students">
-                <el-icon><Avatar /></el-icon>
-                <template #title>学生申请审批</template>
-              </el-menu-item>
-              
-              <!-- 设备管理员：审批教师/学生的申请 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/students">
-                <el-icon><User /></el-icon>
-                <template #title>教师/学生审批</template>
-              </el-menu-item>
-              
-              <!-- 设备管理员：审批校外人员申请 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/approval/teachers">
-                <el-icon><Key /></el-icon>
-                <template #title>校外申请初审</template>
-              </el-menu-item>
-              
-              <!-- 实验室负责人：审批校外人员申请 -->
-              <el-menu-item v-if="user.role === 'director'" index="/main/approval/external">
-                <el-icon><Key /></el-icon>
-                <template #title>校外申请终审</template>
-              </el-menu-item>
-              
-              <!-- 审批历史（所有审批人员） -->
-              <el-menu-item v-if="user.role !== 'student' && user.role !== 'external'" index="/main/approval/students">
-                <el-icon><Clock /></el-icon>
-                <template #title>审批历史</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
+          <el-sub-menu v-if="user.role === 'teacher' || isAdmin || user.role === 'director'" index="approval">
+            <template #title>
+              <el-icon><DocumentChecked /></el-icon>
+              <span>审批管理</span>
+            </template>
+            
+            <!-- 教师：审批学生的申请 -->
+            <el-menu-item v-if="user.role === 'teacher'" index="/main/approval/students">
+              <el-icon><Avatar /></el-icon>
+              <template #title>学生申请审批</template>
+            </el-menu-item>
+            
+            <!-- 设备管理员：审批学生申请 -->
+            <el-menu-item v-if="user.role === 'admin'" index="/main/approval/students">
+              <el-icon><User /></el-icon>
+              <template #title>学生申请审批</template>
+            </el-menu-item>
+            
+            <!-- 设备管理员：审批教师申请 -->
+            <el-menu-item v-if="user.role === 'admin'" index="/main/approval/teachers">
+              <el-icon><School /></el-icon>
+              <template #title>教师申请审批</template>
+            </el-menu-item>
+            
+            <!-- 设备管理员：审批校外人员申请 -->
+            <el-menu-item v-if="user.role === 'admin'" index="/main/approval/external">
+              <el-icon><Key /></el-icon>
+              <template #title>校外申请初审</template>
+            </el-menu-item>
+            
+            <!-- 实验室负责人：审批校外人员申请 -->
+            <el-menu-item v-if="user.role === 'director'" index="/main/approval/external">
+              <el-icon><Key /></el-icon>
+              <template #title>校外申请终审</template>
+            </el-menu-item>
+            
+            <!-- 审批历史（所有审批人员） -->
+            <el-menu-item index="/main/approval/history">
+              <el-icon><Clock /></el-icon>
+              <template #title>审批历史</template>
+            </el-menu-item>
+          </el-sub-menu>
 
           <!-- 财务管理（排除学生和教师角色） -->
-          <template v-if="user.role !== 'student' && user.role !== 'teacher'">
-            <el-sub-menu index="financial">
-              <template #title>
-                <el-icon><Money /></el-icon>
-                <span>财务管理</span>
-              </template>
-              
-              <!-- 校外人员：我的缴费记录 -->
-              <el-menu-item v-if="user.role === 'external'" index="/main/financial/my-payment">
-                <el-icon><Document /></el-icon>
-                <template #title>我的缴费记录</template>
-              </el-menu-item>
-              
-              <!-- 校外人员：账户充值 -->
-              <el-menu-item v-if="user.role === 'external'" index="/main/financial/recharge">
-                <el-icon><Wallet /></el-icon>
-                <template #title>账户充值</template>
-              </el-menu-item>
-              
-              <!-- 管理员：缴费审核 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/financial/payment-audit">
-                <el-icon><DocumentChecked /></el-icon>
-                <template #title>缴费审核</template>
-              </el-menu-item>
-              
-              <!-- 管理员：计费管理 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/financial/billing">
-                <el-icon><Money /></el-icon>
-                <template #title>计费管理</template>
-              </el-menu-item>
-              
-              <!-- 管理员和负责人：财务报表 -->
-              <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/financial/reports">
-                <el-icon><PieChart /></el-icon>
-                <template #title>财务报表</template>
-              </el-menu-item>
-              
-              <!-- 负责人：财务设置 -->
-              <el-menu-item v-if="user.role === 'director'" index="/main/financial/settings">
-                <el-icon><Setting /></el-icon>
-                <template #title>财务设置</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
+          <el-sub-menu v-if="user.role !== 'student' && user.role !== 'teacher'" index="financial">
+            <template #title>
+              <el-icon><Money /></el-icon>
+              <span>财务管理</span>
+            </template>
+            
+            <el-menu-item v-if="user.role === 'external'" index="/main/financial/payment">
+              <el-icon><Money /></el-icon>
+              <template #title>在线缴费</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'external'" index="/main/financial/my-payment">
+              <el-icon><Document /></el-icon>
+              <template #title>缴费记录</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'external'" index="/main/financial/recharge">
+              <el-icon><Wallet /></el-icon>
+              <template #title>账户充值</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'admin'" index="/main/financial/payment-audit">
+              <el-icon><DocumentChecked /></el-icon>
+              <template #title>缴费审核</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'admin'" index="/main/financial/billing">
+              <el-icon><Wallet /></el-icon>
+              <template #title>计费管理</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/financial/reports">
+              <el-icon><PieChart /></el-icon>
+              <template #title>财务报表</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'director'" index="/main/financial/settings">
+              <el-icon><Setting /></el-icon>
+              <template #title>财务设置</template>
+            </el-menu-item>
+          </el-sub-menu>
 
           <!-- 设备管理（管理员、实验室负责人） -->
-          <template v-if="user.role === 'admin' || user.role === 'director'">
-            <el-sub-menu index="equipment-manage">
-              <template #title>
-                <el-icon><Tools /></el-icon>
-                <span>设备管理</span>
-              </template>
-              <el-menu-item index="/main/equipment-manage/list">
-                <el-icon><List /></el-icon>
-                <template #title>设备列表管理</template>
-              </el-menu-item>
-              <el-menu-item index="/main/equipment-manage/maintenance">
-                <el-icon><Setting /></el-icon>
-                <template #title>设备维护</template>
-              </el-menu-item>
-              <el-menu-item index="/main/equipment-manage/add">
-                <el-icon><CirclePlus /></el-icon>
-                <template #title>新增设备</template>
-              </el-menu-item>
-              <el-menu-item index="/main/equipment-manage/audit">
-                <el-icon><DocumentChecked /></el-icon>
-                <template #title>设备审批</template>
-              </el-menu-item>
-              <el-menu-item index="/main/equipment-manage/status">
-                <el-icon><Monitor /></el-icon>
-                <template #title>设备状态</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
+          <el-sub-menu v-if="user.role === 'admin' || user.role === 'director'" index="equipment-manage">
+            <template #title>
+              <el-icon><Tools /></el-icon>
+              <span>设备管理</span>
+            </template>
+            
+            <el-menu-item index="/main/equipment-manage/list">
+              <el-icon><List /></el-icon>
+              <template #title>设备列表</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/equipment-manage/maintenance">
+              <el-icon><Setting /></el-icon>
+              <template #title>设备维护</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/equipment-manage/add">
+              <el-icon><CirclePlus /></el-icon>
+              <template #title>新增设备</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/equipment-manage/audit">
+              <el-icon><DocumentChecked /></el-icon>
+              <template #title>设备审批</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/equipment-manage/status">
+              <el-icon><Monitor /></el-icon>
+              <template #title>设备状态</template>
+            </el-menu-item>
+          </el-sub-menu>
 
           <!-- 用户管理（教师、管理员、实验室负责人） -->
-          <template v-if="user.role === 'teacher' || isAdmin || user.role === 'director'">
-            <el-sub-menu index="user-manage">
-              <template #title>
-                <el-icon><User /></el-icon>
-                <span>用户管理</span>
-              </template>
-              
-              <!-- 教师：管理自己的学生 -->
-              <el-menu-item v-if="user.role === 'teacher'" index="/main/user-manage/students">
-                <el-icon><Avatar /></el-icon>
-                <template #title>学生管理</template>
-              </el-menu-item>
-              
-              <!-- 管理员：管理用户 -->
-              <el-menu-item v-if="user.role === 'admin'" index="/main/user-manage/teachers">
-                <el-icon><User /></el-icon>
-                <template #title>用户管理</template>
-              </el-menu-item>
-              
-              <!-- 实验室负责人：全部用户管理 -->
-              <el-menu-item v-if="user.role === 'director'" index="/main/user-manage/admins">
-                <el-icon><UserFilled /></el-icon>
-                <template #title>用户管理</template>
-              </el-menu-item>
-              
-              <!-- 校外人员管理（管理员、实验室负责人） -->
-              <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/user-manage/external">
-                <el-icon><Key /></el-icon>
-                <template #title>校外人员管理</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
+          <el-sub-menu v-if="user.role === 'teacher' || isAdmin || user.role === 'director'" index="user-manage">
+            <template #title>
+              <el-icon><User /></el-icon>
+              <span>用户管理</span>
+            </template>
+            
+            <el-menu-item v-if="user.role === 'teacher'" index="/main/user-manage/students">
+              <el-icon><Avatar /></el-icon>
+              <template #title>学生管理</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'admin'" index="/main/user-manage/teachers">
+              <el-icon><User /></el-icon>
+              <template #title>用户管理</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'director'" index="/main/user-manage/admins">
+              <el-icon><UserFilled /></el-icon>
+              <template #title>用户管理</template>
+            </el-menu-item>
+            
+            <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/user-manage/external">
+              <el-icon><Key /></el-icon>
+              <template #title>校外人员管理</template>
+            </el-menu-item>
+          </el-sub-menu>
 
           <!-- 报表统计（管理员、实验室负责人） -->
-          <template v-if="user.role === 'admin' || user.role === 'director'">
-            <el-menu-item index="/main/report/usage">
-              <el-icon><DataAnalysis /></el-icon>
-              <template #title>报表统计</template>
-            </el-menu-item>
-          </template>
+          <el-menu-item v-if="user.role === 'admin' || user.role === 'director'" index="/main/report/usage">
+            <el-icon><DataAnalysis /></el-icon>
+            <template #title>报表统计</template>
+          </el-menu-item>
 
           <!-- 系统管理（实验室负责人） -->
-          <template v-if="user.role === 'director'">
-            <el-sub-menu index="system">
-              <template #title>
-                <el-icon><Setting /></el-icon>
-                <span>系统管理</span>
-              </template>
-              <el-menu-item index="/main/system/settings">
-                <el-icon><Tools /></el-icon>
-                <template #title>系统设置</template>
-              </el-menu-item>
-              <el-menu-item index="/main/system/logs">
-                <el-icon><Document /></el-icon>
-                <template #title>系统日志</template>
-              </el-menu-item>
-              <el-menu-item index="/main/system/backup">
-                <el-icon><Upload /></el-icon>
-                <template #title>系统备份</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </template>
+          <el-sub-menu v-if="user.role === 'director'" index="system">
+            <template #title>
+              <el-icon><Setting /></el-icon>
+              <span>系统管理</span>
+            </template>
+            
+            <el-menu-item index="/main/system/settings">
+              <el-icon><Tools /></el-icon>
+              <template #title>系统设置</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/system/logs">
+              <el-icon><Document /></el-icon>
+              <template #title>系统日志</template>
+            </el-menu-item>
+            
+            <el-menu-item index="/main/system/backup">
+              <el-icon><Upload /></el-icon>
+              <template #title>系统备份</template>
+            </el-menu-item>
+          </el-sub-menu>
 
           <!-- 个人中心（所有用户） -->
           <el-menu-item index="/main/profile">

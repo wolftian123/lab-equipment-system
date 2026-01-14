@@ -36,19 +36,8 @@ const routes = [
     meta: {
       requiresAuth: true
     },
+    redirect: '/main/equipment/list', // 默认跳转到设备查询
     children: [
-      // ==================== 仪表盘 ====================
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('../components/Dashboard.vue'),
-        meta: {
-          title: '仪表盘',
-          icon: 'Odometer',
-          roles: ['student', 'teacher', 'admin', 'director', 'external']
-        }
-      },
-      
       // ==================== 设备查询 ====================
       {
         path: 'equipment',
@@ -100,19 +89,19 @@ const routes = [
           {
             path: 'apply',
             name: 'ReservationApply',
-            component: () => import('../components/Reservation.vue'),
+            component: () => import('../components/ReservationApply.vue'),
             meta: { title: '预约申请', icon: 'DocumentAdd' }
           },
           {
             path: 'my',
             name: 'MyReservation',
-            component: () => import('../components/Reservation.vue'),
+            component: () => import('../components/MyReservation.vue'),
             meta: { title: '我的预约', icon: 'List' }
           },
           {
             path: 'history',
             name: 'ReservationHistory',
-            component: () => import('../components/Reservation.vue'),
+            component: () => import('../components/ReservationHistory.vue'),
             meta: { title: '预约历史', icon: 'Histogram' }
           }
         ]
@@ -153,7 +142,7 @@ const routes = [
               approvalType: 'teacher'
             }
           },
-          // 校外人员申请 - 只有负责人可见
+          // 校外人员申请 - 管理员和负责人可见
           {
             path: 'external',
             name: 'ExternalApproval',
@@ -161,8 +150,20 @@ const routes = [
             meta: { 
               title: '校外人员申请', 
               icon: 'OfficeBuilding',
-              roles: ['director'],
+              roles: ['admin', 'director'],
               approvalType: 'external'
+            }
+          },
+          // 审批历史 - 所有审批人员可见
+          {
+            path: 'history',
+            name: 'ApprovalHistory',
+            component: () => import('../components/ApprovalList.vue'),
+            meta: { 
+              title: '审批历史', 
+              icon: 'Clock',
+              roles: ['teacher', 'admin', 'director'],
+              approvalType: 'history'
             }
           }
         ]
@@ -245,7 +246,7 @@ const routes = [
               roles: ['admin', 'director']
             }
           },
-          // 校外人员管理 - 只有负责人可见
+          // 校外人员管理 - 管理员和负责人可见
           {
             path: 'external',
             name: 'ExternalUserManage',
@@ -253,7 +254,7 @@ const routes = [
             meta: { 
               title: '校外人员管理', 
               icon: 'OfficeBuilding',
-              roles: ['director']
+              roles: ['admin', 'director']
             }
           },
           // 管理员管理 - 只有负责人可见
@@ -278,26 +279,80 @@ const routes = [
         meta: {
           title: '财务管理',
           icon: 'Money',
-          roles: ['admin', 'director'] // 设备管理员和实验室负责人可见
+          roles: ['admin', 'director', 'external'] // 设备管理员、实验室负责人和校外人员可见
         },
         children: [
+          // 校外人员财务管理
+          {
+            path: 'payment',
+            name: 'Payment',
+            component: () => import('../components/Payment.vue'),
+            meta: { 
+              title: '在线缴费', 
+              icon: 'Money',
+              roles: ['external']
+            }
+          },
+          {
+            path: 'my-payment',
+            name: 'MyPayment',
+            component: () => import('../components/MyPayment.vue'),
+            meta: { 
+              title: '缴费记录', 
+              icon: 'Document',
+              roles: ['external']
+            }
+          },
+          {
+            path: 'recharge',
+            name: 'Recharge',
+            component: () => import('../components/Recharge.vue'),
+            meta: { 
+              title: '账户充值', 
+              icon: 'Wallet',
+              roles: ['external']
+            }
+          },
+          // 管理员和负责人财务管理
           {
             path: 'reports',
             name: 'FinancialReports',
             component: () => import('../components/FinancialReports.vue'),
-            meta: { title: '财务报表', icon: 'PieChart' }
+            meta: { 
+              title: '财务报表', 
+              icon: 'PieChart',
+              roles: ['admin', 'director']
+            }
+          },
+          {
+            path: 'payment-audit',
+            name: 'PaymentAudit',
+            component: () => import('../components/PaymentAudit.vue'),
+            meta: { 
+              title: '缴费审核', 
+              icon: 'DocumentChecked',
+              roles: ['admin', 'director']
+            }
           },
           {
             path: 'billing',
             name: 'Billing',
             component: () => import('../components/Billing.vue'),
-            meta: { title: '计费管理', icon: 'Wallet' }
+            meta: { 
+              title: '计费管理', 
+              icon: 'Wallet',
+              roles: ['admin', 'director']
+            }
           },
           {
             path: 'settings',
             name: 'FinancialSettings',
             component: () => import('../components/FinancialSettings.vue'),
-            meta: { title: '财务设置', icon: 'Setting' }
+            meta: { 
+              title: '财务设置', 
+              icon: 'Setting',
+              roles: ['admin', 'director']
+            }
           }
         ]
       },
@@ -481,7 +536,7 @@ router.beforeEach(async (to, from, next) => {
             redirectPath = '/main/approval/students'
             break
           case 'external':
-            errorMessage = '校外人员只能使用查询和预约功能'
+            errorMessage = '校外人员只能使用查询、预约和财务管理功能'
             redirectPath = '/main/equipment/list'
             break
           case 'admin':
@@ -530,14 +585,13 @@ router.beforeEach(async (to, from, next) => {
       '/main/approval',
       '/main/equipment-manage',
       '/main/user-manage',
-      '/main/financial',
       '/main/report',
       '/main/system'
     ]
     
     if (externalRestrictedPaths.some(path => to.path.startsWith(path))) {
       console.log('❌ 校外人员不能访问管理页面')
-      ElMessage.error('校外人员只能使用查询和预约功能')
+      ElMessage.error('校外人员只能使用查询、预约和财务管理功能')
       next('/main/equipment/list')
       return
     }
@@ -573,19 +627,16 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   
-  // 4.4 设备管理员限制 - 不能访问系统管理和财务管理
+  // 4.4 设备管理员限制 - 不能访问系统管理
   if (user?.role === 'admin') {
     const adminRestrictedPaths = [
-      '/main/financial',
       '/main/system',
-      '/main/user-manage/external',
-      '/main/user-manage/admins',
-      '/main/approval/external'
+      '/main/user-manage/admins'
     ]
     
     if (adminRestrictedPaths.some(path => to.path.startsWith(path))) {
       console.log('❌ 设备管理员权限不足')
-      ElMessage.error('设备管理员无法访问财务和系统管理')
+      ElMessage.error('设备管理员无法访问系统管理')
       next('/main/equipment-manage/list')
       return
     }

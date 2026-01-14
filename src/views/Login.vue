@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
@@ -473,8 +473,8 @@ const useTestAccount = (role) => {
       duration: 2000
     });
     
-    // 跳转到仪表盘
-    router.push('/main/dashboard');
+    // 跳转到设备查询
+    router.push('/main/equipment/list');
     
     loading.value = false;
   }, 800);
@@ -492,7 +492,7 @@ const handleLogin = async () => {
     await store.dispatch("login", form);
 
     ElMessage.success("登录成功！");
-    router.push("/main/dashboard");
+    router.push("/main/equipment/list");
   } catch (error) {
     ElMessage.error("登录失败，请检查用户名和密码");
   } finally {

@@ -1,7 +1,49 @@
 <template>
   <div class="reports-container">
     <div class="reports-header">
-      <h2>报表统计</h2>
+      <div class="header-left">
+        <h2>报表统计</h2>
+        <div class="report-type-selector">
+          <el-radio-group v-model="reportType" size="large" @change="handleReportTypeChange">
+            <el-radio-button label="week">周报表</el-radio-button>
+            <el-radio-button label="month">月报表</el-radio-button>
+            <el-radio-button label="year">年报表</el-radio-button>
+          </el-radio-group>
+        </div>
+        <div class="date-selector" v-if="reportType === 'week'">
+          <el-date-picker
+            v-model="weekDate"
+            type="date"
+            placeholder="选择周"
+            format="yyyy-MM-dd"
+            value-format="yyyy-MM-dd"
+            clearable
+            @change="handleDateChange"
+          />
+        </div>
+        <div class="date-selector" v-if="reportType === 'month'">
+          <el-date-picker
+            v-model="monthDate"
+            type="month"
+            placeholder="选择月份"
+            format="yyyy 年 MM 月"
+            value-format="yyyy-MM"
+            clearable
+            @change="handleDateChange"
+          />
+        </div>
+        <div class="date-selector" v-if="reportType === 'year'">
+          <el-date-picker
+            v-model="yearDate"
+            type="year"
+            placeholder="选择年份"
+            format="yyyy 年"
+            value-format="yyyy"
+            clearable
+            @change="handleDateChange"
+          />
+        </div>
+      </div>
       <el-button type="primary" @click="exportReport">
         <el-icon><Download /></el-icon>
         导出报表
@@ -305,6 +347,12 @@ import {
 } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
+// 报表类型
+const reportType = ref('month');
+const weekDate = ref('');
+const monthDate = ref('');
+const yearDate = ref('');
+
 // 统计数据
 const totalEquipment = ref(128);
 const availableEquipment = ref(96);
@@ -437,10 +485,74 @@ const reservationData = ref([
 const deviceDialogVisible = ref(false);
 const selectedDevice = ref(null);
 
+
+// 处理报表类型切换
+const handleReportTypeChange = (type) => {
+  console.log('切换到报表类型:', type);
+  // 根据报表类型重置日期选择
+  if (type === 'week') {
+    weekDate.value = new Date().toISOString().split('T')[0];
+  } else if (type === 'month') {
+    const now = new Date();
+    monthDate.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  } else if (type === 'year') {
+    yearDate.value = new Date().getFullYear().toString();
+  }
+  // 刷新报表数据
+  refreshReportData();
+};
+
+// 处理日期选择变化
+const handleDateChange = () => {
+  console.log('日期变化:', {
+    weekDate: weekDate.value,
+    monthDate: monthDate.value,
+    yearDate: yearDate.value
+  });
+  // 刷新报表数据
+  refreshReportData();
+};
+
+// 刷新报表数据
+const refreshReportData = () => {
+  // 根据当前报表类型和日期获取对应的数据
+  console.log('刷新报表数据:', {
+    reportType: reportType.value,
+    weekDate: weekDate.value,
+    monthDate: monthDate.value,
+    yearDate: yearDate.value
+  });
+  
+  // 模拟数据更新
+  if (reportType.value === 'week') {
+    usageRate.value = Math.floor(Math.random() * 30) + 60;
+    todayReservations.value = Math.floor(Math.random() * 10) + 10;
+  } else if (reportType.value === 'month') {
+    usageRate.value = Math.floor(Math.random() * 20) + 65;
+    todayReservations.value = Math.floor(Math.random() * 15) + 10;
+  } else if (reportType.value === 'year') {
+    usageRate.value = Math.floor(Math.random() * 15) + 70;
+    todayReservations.value = Math.floor(Math.random() * 20) + 5;
+  }
+  
+  ElMessage.success(`${getReportTypeName()}数据已刷新`);
+};
+
+// 获取报表类型名称
+const getReportTypeName = () => {
+  const typeMap = {
+    'week': '周报表',
+    'month': '月报表',
+    'year': '年报表'
+  };
+  return typeMap[reportType.value] || '';
+};
+
 // 导出报表
 const exportReport = () => {
-  ElMessage.success('报表导出成功');
+  ElMessage.success(`${getReportTypeName()}导出成功`);
 };
+
 
 // 刷新使用率报表
 const refreshUsageReport = () => {
@@ -490,6 +602,11 @@ watch(chartType, () => {
 // 初始化
 onMounted(() => {
   initCharts();
+  // 设置默认日期
+  const now = new Date();
+  weekDate.value = now.toISOString().split('T')[0];
+  monthDate.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  yearDate.value = now.getFullYear().toString();
   console.log('Reports component mounted');
 });
 </script>
@@ -504,8 +621,17 @@ onMounted(() => {
 .reports-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .reports-header h2 {
@@ -513,6 +639,15 @@ onMounted(() => {
   font-size: 20px;
   font-weight: 600;
   color: #303133;
+  white-space: nowrap;
+}
+
+.report-type-selector {
+  margin-top: 2px;
+}
+
+.date-selector {
+  min-width: 200px;
 }
 
 .stats-cards {
