@@ -43,6 +43,16 @@
           {{ formatDate(scope.row.applyTime) }}
         </template>
       </el-table-column>
+      <el-table-column prop="approvalTime" label="审批时间" width="180" v-if="approvalType.value === 'history'">
+        <template #default="scope">
+          {{ formatDate(scope.row.approvalTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="approvalBy" label="审批人" width="120" v-if="approvalType.value === 'history'">
+        <template #default="scope">
+          {{ scope.row.approvalBy }}
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" width="100">
         <template #default="scope">
           <el-tag 
@@ -111,7 +121,9 @@
           <el-descriptions-item label="设备ID">{{ currentApplication.equipmentId }}</el-descriptions-item>
           <el-descriptions-item label="申请时间">{{ formatDate(currentApplication.applyTime) }}</el-descriptions-item>
           <el-descriptions-item label="申请状态">{{ getStatusText(currentApplication.status) }}</el-descriptions-item>
-          <el-descriptions-item label="预约时间" :span="2">
+          <el-descriptions-item label="审批时间" v-if="currentApplication.approvalTime">{{ formatDate(currentApplication.approvalTime) }}</el-descriptions-item>
+          <el-descriptions-item label="审批人" v-if="currentApplication.approvalBy">{{ currentApplication.approvalBy }}</el-descriptions-item>
+          <el-descriptions-item label="预约时间" :span="2" v-if="currentApplication.reservationTime">
             {{ formatDate(currentApplication.reservationTime.start) }} 至 {{ formatDate(currentApplication.reservationTime.end) }}
           </el-descriptions-item>
           <el-descriptions-item label="申请理由" :span="2">
@@ -155,7 +167,8 @@ const getTitle = () => {
   const titles = {
     student: '学生申请审批',
     teacher: '教师申请审批',
-    external: '校外人员申请审批'
+    external: '校外人员申请审批',
+    history: '审批历史'
   }
   return titles[approvalType.value] || '审批管理'
 }
@@ -171,6 +184,8 @@ function loadApplications() {
   const now = new Date()
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
+  const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000)
   
   if (approvalType.value === 'student') {
     applications.value = [
@@ -282,6 +297,82 @@ function loadApplications() {
         },
         reason: '需要使用高性能计算机进行技术交流实验，为期6小时。',
         approvalComment: '同意使用，按校外人员标准收费。'
+      }
+    ]
+  } else if (approvalType.value === 'history') {
+    // 审批历史数据 - 包含所有类型的已审批申请
+    applications.value = [
+      // 学生申请历史
+      {
+        id: 'app_stu_002',
+        title: '计算机实验室使用申请',
+        applicant: '李四',
+        applicantId: '2023123457',
+        equipmentName: '高性能计算机',
+        equipmentId: 'eq_002',
+        applyTime: threeDaysAgo.toISOString(),
+        status: 'approved',
+        approvalTime: twoDaysAgo.toISOString(),
+        reservationTime: {
+          start: yesterday.toISOString(),
+          end: new Date(yesterday.getTime() + 4 * 60 * 60 * 1000).toISOString()
+        },
+        reason: '需要使用高性能计算机进行数据处理，为期4小时。',
+        approvalComment: '同意使用，请注意设备安全。',
+        approvalBy: '张老师'
+      },
+      {
+        id: 'app_stu_003',
+        title: '化学实验设备使用申请',
+        applicant: '王五',
+        applicantId: '2023123458',
+        equipmentName: '分光光度计',
+        equipmentId: 'eq_003',
+        applyTime: fourDaysAgo.toISOString(),
+        status: 'rejected',
+        approvalTime: threeDaysAgo.toISOString(),
+        reservationTime: {
+          start: now.toISOString(),
+          end: new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString()
+        },
+        reason: '需要使用分光光度计进行化学实验，为期3小时。',
+        approvalComment: '设备当前维护中，暂无法使用。',
+        approvalBy: '张老师'
+      },
+      // 教师申请历史
+      {
+        id: 'app_tea_002',
+        title: '设备维修申请',
+        applicant: '王老师',
+        applicantId: '10002',
+        equipmentName: '气相色谱仪',
+        equipmentId: 'eq_005',
+        applyTime: fourDaysAgo.toISOString(),
+        status: 'approved',
+        approvalTime: threeDaysAgo.toISOString(),
+        reservationTime: null,
+        reason: '气相色谱仪需要进行定期维护和校准。',
+        approvalComment: '同意维修，请联系设备管理处。',
+        approvalBy: '李主任'
+      },
+      // 校外人员申请历史
+      {
+        id: 'app_ext_002',
+        title: '技术交流实验申请',
+        applicant: '钱女士',
+        applicantId: 'ext2024002',
+        equipmentName: '高性能计算机',
+        equipmentId: 'eq_002',
+        applyTime: fourDaysAgo.toISOString(),
+        status: 'approved',
+        approvalTime: threeDaysAgo.toISOString(),
+        reservationTime: {
+          start: yesterday.toISOString(),
+          end: new Date(yesterday.getTime() + 6 * 60 * 60 * 1000).toISOString()
+        },
+        reason: '需要使用高性能计算机进行技术交流实验，为期6小时。',
+        approvalComment: '同意使用，按校外人员标准收费。',
+        approvalBy: '李主任'
       }
     ]
   }

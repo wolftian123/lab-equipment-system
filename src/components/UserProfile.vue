@@ -55,73 +55,6 @@
       </div>
     </el-card>
     
-    <!-- 账户安全卡片 -->
-    <el-card shadow="hover" class="security-card" style="margin-top: 20px;">
-      <template #header>
-        <div class="card-header">
-          <span>账户安全</span>
-        </div>
-      </template>
-      
-      <div class="security-content">
-        <el-table :data="securityItems" style="width: 100%;">
-          <el-table-column prop="item" label="安全项" width="200" />
-          <el-table-column prop="status" label="状态" width="150">
-            <template #default="scope">
-              <el-tag :type="scope.row.statusType">
-                {{ scope.row.status }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="description" label="描述" />
-          <el-table-column label="操作" width="120" fixed="right">
-            <template #default="scope">
-              <el-button size="small" @click="handleSecurityAction(scope.row.action)">
-                {{ scope.row.actionText }}
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </el-card>
-    
-    <!-- 最近活动卡片 -->
-    <el-card shadow="hover" class="activity-card" style="margin-top: 20px;">
-      <template #header>
-        <div class="card-header">
-          <span>最近活动</span>
-          <el-button size="small" @click="loadMoreActivity">加载更多</el-button>
-        </div>
-      </template>
-      
-      <div v-if="loading" class="loading-container">
-        <el-spinner size="large" />
-        <p>加载中...</p>
-      </div>
-      
-      <div v-else-if="recentActivity.length === 0" class="empty-container">
-        <el-empty description="暂无活动记录" />
-      </div>
-      
-      <div v-else class="activity-list">
-        <el-timeline>
-          <el-timeline-item 
-            v-for="(item, index) in recentActivity" 
-            :key="index"
-            :timestamp="formatDate(item.time)"
-            :type="item.type"
-          >
-            <el-card shadow="hover" :body-style="{ padding: '10px' }">
-              <div class="activity-item">
-                <div class="activity-title">{{ item.title }}</div>
-                <div class="activity-description">{{ item.description }}</div>
-              </div>
-            </el-card>
-          </el-timeline-item>
-        </el-timeline>
-      </div>
-    </el-card>
-    
     <!-- 编辑个人信息对话框 -->
     <el-dialog 
       v-model="editProfileDialogVisible" 
@@ -198,32 +131,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { 
   Edit, 
   Key, 
   Upload 
 } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { useStore } from 'vuex';
 
 // 状态管理
+const store = useStore();
 const editProfileDialogVisible = ref(false);
 const changePasswordDialogVisible = ref(false);
 const loading = ref(false);
 
-// 用户信息（模拟）
-const userInfo = ref({
-  id: 1,
-  username: 'admin',
-  name: '管理员',
-  role: 'admin',
-  email: 'admin@example.com',
-  contactPhone: '13800138001',
+// 从store获取用户信息
+const userInfo = computed(() => store.getters.currentUser || {
+  id: '',
+  username: '',
+  name: '',
+  role: '',
+  email: '',
+  contactPhone: '',
   status: 'active',
   avatar: '',
-  registerTime: '2026-01-01T00:00:00',
-  lastLogin: '2026-01-13T10:00:00',
-  notes: '系统管理员'
+  registerTime: '',
+  lastLogin: '',
+  notes: ''
 });
 
 // 编辑表单
@@ -253,70 +188,6 @@ const passwordRules = {
   newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }, { min: 6, message: '密码长度至少为6位', trigger: 'blur' }],
   confirmPassword: [{ required: true, message: '请确认新密码', trigger: 'blur' }]
 };
-
-// 安全项
-const securityItems = ref([
-  {
-    item: '登录密码',
-    status: '已设置',
-    statusType: 'success',
-    description: '用于账户登录的密码',
-    action: 'changePassword',
-    actionText: '修改'
-  },
-  {
-    item: '邮箱验证',
-    status: '已验证',
-    statusType: 'success',
-    description: '用于找回密码和接收通知',
-    action: 'verifyEmail',
-    actionText: '重新验证'
-  },
-  {
-    item: '手机验证',
-    status: '未验证',
-    statusType: 'warning',
-    description: '用于找回密码和接收通知',
-    action: 'verifyPhone',
-    actionText: '验证'
-  },
-  {
-    item: '两步验证',
-    status: '未开启',
-    statusType: 'info',
-    description: '提高账户安全性',
-    action: 'enable2FA',
-    actionText: '开启'
-  }
-]);
-
-// 最近活动
-const recentActivity = ref([
-  {
-    time: '2026-01-13T10:00:00',
-    title: '登录系统',
-    description: '使用管理员账号登录了系统',
-    type: 'success'
-  },
-  {
-    time: '2026-01-13T09:30:00',
-    title: '修改设置',
-    description: '更新了系统配置',
-    type: 'primary'
-  },
-  {
-    time: '2026-01-12T16:00:00',
-    title: '审批申请',
-    description: '审批了学生的设备预约申请',
-    type: 'info'
-  },
-  {
-    time: '2026-01-12T14:00:00',
-    title: '添加用户',
-    description: '添加了新的教师用户',
-    type: 'success'
-  }
-]);
 
 // 角色文本和类型
 const getRoleText = (role) => {
@@ -372,7 +243,7 @@ const openEditProfileDialog = () => {
   editForm.value = {
     name: userInfo.value.name,
     email: userInfo.value.email,
-    contactPhone: userInfo.value.contactPhone,
+    contactPhone: userInfo.value.contactPhone || userInfo.value.phone,
     notes: userInfo.value.notes
   };
   editProfileDialogVisible.value = true;
@@ -385,10 +256,17 @@ const saveProfile = () => {
     loading.value = false;
     editProfileDialogVisible.value = false;
     
-    userInfo.value = {
+    // 更新store中的用户信息
+    const updatedUser = {
       ...userInfo.value,
-      ...editForm.value
+      name: editForm.value.name,
+      email: editForm.value.email,
+      contactPhone: editForm.value.contactPhone,
+      phone: editForm.value.contactPhone,
+      notes: editForm.value.notes
     };
+    
+    store.commit('SET_USER', updatedUser);
     
     ElMessage.success('个人信息更新成功');
   }, 500);
@@ -423,35 +301,6 @@ const changePassword = () => {
 // 上传头像
 const uploadAvatar = () => {
   ElMessage.info('头像上传功能开发中');
-};
-
-// 处理安全操作
-const handleSecurityAction = (action) => {
-  switch (action) {
-    case 'changePassword':
-      openChangePasswordDialog();
-      break;
-    case 'verifyEmail':
-      ElMessage.info('邮箱验证功能开发中');
-      break;
-    case 'verifyPhone':
-      ElMessage.info('手机验证功能开发中');
-      break;
-    case 'enable2FA':
-      ElMessage.info('两步验证功能开发中');
-      break;
-    default:
-      break;
-  }
-};
-
-// 加载更多活动
-const loadMoreActivity = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-    ElMessage.success('已加载全部活动记录');
-  }, 1000);
 };
 
 // 初始化

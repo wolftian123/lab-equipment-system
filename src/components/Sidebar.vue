@@ -19,7 +19,7 @@
       <ul>
         <!-- 菜单项 -->
         <li 
-          v-for="item in menuItems" 
+          v-for="item in filteredMenuItems" 
           :key="item.path"
           class="menu-item"
           :class="{ 'has-children': item.children && item.children.length > 0 }"
@@ -108,21 +108,41 @@ import {
 } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { useStore } from 'vuex';
 
 // 路由
 const router = useRouter();
 const route = useRoute();
 
 // 状态管理
+const store = useStore();
 const isCollapsed = ref(false);
 
 // 用户信息
-const user = ref({
+const user = computed(() => store.getters.currentUser || {
   id: 1,
   username: 'admin',
   name: '管理员',
   role: 'director',
   avatar: ''
+});
+
+// 过滤后的菜单项
+const filteredMenuItems = computed(() => {
+  const currentRole = user.value.role;
+  return menuItems.value.filter(item => {
+    // 检查菜单项是否对当前角色可见
+    if (!item.roles || item.roles.includes(currentRole)) {
+      // 过滤子菜单
+      if (item.children && item.children.length > 0) {
+        item.children = item.children.filter(subItem => {
+          return !subItem.roles || subItem.roles.includes(currentRole);
+        });
+      }
+      return true;
+    }
+    return false;
+  });
 });
 
 // 菜单数据
@@ -394,17 +414,15 @@ const getRoleText = (role) => {
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
 };
-
 // 初始化
 onMounted(() => {
   // 初始化菜单展开状态
-  menuItems.value.forEach(item => {
+  filteredMenuItems.value.forEach(item => {
     if (item.children && item.children.length > 0) {
       item.isOpen = item.children.some(subItem => isActive(subItem));
     }
   });
-});
-</script>
+});</script>
 
 <style scoped>
 .sidebar {

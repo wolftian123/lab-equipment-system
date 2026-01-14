@@ -358,9 +358,12 @@ import {
   Clock
 } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import { useStore } from 'vuex';
 
 // 状态管理
+const store = useStore();
 const activeTab = ref('apply');
+const userRole = computed(() => store.getters.userRole);
 
 // 预约申请表单
 const applyForm = reactive({
@@ -394,60 +397,200 @@ const equipmentList = ref([
 ]);
 
 // 我的预约
-const myReservations = ref([
-  {
-    id: 'R20240101',
-    equipmentName: '电子显微镜',
-    equipmentModel: 'SEM-1000',
-    date: '2024-01-15',
-    startTime: '10:00',
-    duration: 2,
-    purpose: '实验研究',
-    status: 'pending',
-    createdAt: '2024-01-10 14:30:00'
-  },
-  {
-    id: 'R20240102',
-    equipmentName: '光谱分析仪',
-    equipmentModel: 'Spectrum-2000',
-    date: '2024-01-12',
-    startTime: '14:00',
-    duration: 3,
-    purpose: '材料分析',
-    status: 'approved',
-    createdAt: '2024-01-09 09:15:00',
-    approvalTime: '2024-01-09 10:30:00'
-  }
-]);
+const myReservations = ref([]);
 
 // 历史预约
-const historyReservations = ref([
-  {
-    id: 'R20231230',
-    equipmentName: '3D打印机',
-    equipmentModel: '3D-4000',
-    date: '2023-12-30',
-    startTime: '13:00',
-    duration: 2,
-    purpose: '模型制作',
-    status: 'completed',
-    createdAt: '2023-12-28 16:45:00',
-    approvalTime: '2023-12-29 09:00:00'
-  },
-  {
-    id: 'R20231225',
-    equipmentName: '激光切割机',
-    equipmentModel: 'Laser-3000',
-    date: '2023-12-25',
-    startTime: '11:00',
-    duration: 1,
-    purpose: '零件加工',
-    status: 'rejected',
-    createdAt: '2023-12-24 10:20:00',
-    approvalTime: '2023-12-24 14:00:00',
-    approvalRemark: '设备维护中'
+const historyReservations = ref([]);
+
+// 根据用户角色生成预约数据
+const generateReservationData = () => {
+  const role = userRole.value;
+  
+  // 重置数据
+  myReservations.value = [];
+  historyReservations.value = [];
+  
+  switch (role) {
+    case 'student':
+      // 学生预约数据
+      myReservations.value = [
+        {
+          id: 'S' + Date.now(),
+          equipmentName: '电子显微镜',
+          equipmentModel: 'SEM-1000',
+          date: '2024-01-15',
+          startTime: '10:00',
+          duration: 2,
+          purpose: '实验研究',
+          status: 'pending',
+          createdAt: '2024-01-10 14:30:00'
+        },
+        {
+          id: 'S' + (Date.now() + 1),
+          equipmentName: '光谱分析仪',
+          equipmentModel: 'Spectrum-2000',
+          date: '2024-01-12',
+          startTime: '14:00',
+          duration: 3,
+          purpose: '材料分析',
+          status: 'approved',
+          createdAt: '2024-01-09 09:15:00',
+          approvalTime: '2024-01-09 10:30:00'
+        }
+      ];
+      historyReservations.value = [
+        {
+          id: 'SH' + Date.now(),
+          equipmentName: '3D打印机',
+          equipmentModel: '3D-4000',
+          date: '2023-12-30',
+          startTime: '13:00',
+          duration: 2,
+          purpose: '模型制作',
+          status: 'completed',
+          createdAt: '2023-12-28 16:45:00',
+          approvalTime: '2023-12-29 09:00:00'
+        }
+      ];
+      break;
+      
+    case 'teacher':
+      // 教师预约数据
+      myReservations.value = [
+        {
+          id: 'T' + Date.now(),
+          equipmentName: '激光切割机',
+          equipmentModel: 'Laser-3000',
+          date: '2024-01-16',
+          startTime: '09:00',
+          duration: 4,
+          purpose: '教学演示',
+          status: 'approved',
+          createdAt: '2024-01-11 10:20:00',
+          approvalTime: '2024-01-11 11:00:00'
+        }
+      ];
+      historyReservations.value = [
+        {
+          id: 'TH' + Date.now(),
+          equipmentName: '示波器',
+          equipmentModel: 'Oscilloscope-5000',
+          date: '2023-12-28',
+          startTime: '15:00',
+          duration: 3,
+          purpose: '实验课程',
+          status: 'completed',
+          createdAt: '2023-12-26 14:30:00',
+          approvalTime: '2023-12-27 09:30:00'
+        }
+      ];
+      break;
+      
+    case 'admin':
+      // 管理员预约数据
+      myReservations.value = [
+        {
+          id: 'A' + Date.now(),
+          equipmentName: '光谱分析仪',
+          equipmentModel: 'Spectrum-2000',
+          date: '2024-01-14',
+          startTime: '13:00',
+          duration: 2,
+          purpose: '设备维护测试',
+          status: 'approved',
+          createdAt: '2024-01-09 16:00:00',
+          approvalTime: '2024-01-09 16:00:00'
+        }
+      ];
+      historyReservations.value = [
+        {
+          id: 'AH' + Date.now(),
+          equipmentName: '电子显微镜',
+          equipmentModel: 'SEM-1000',
+          date: '2023-12-29',
+          startTime: '10:00',
+          duration: 5,
+          purpose: '设备校准',
+          status: 'completed',
+          createdAt: '2023-12-27 09:00:00',
+          approvalTime: '2023-12-27 09:00:00'
+        }
+      ];
+      break;
+      
+    case 'director':
+      // 实验室负责人预约数据
+      myReservations.value = [
+        {
+          id: 'D' + Date.now(),
+          equipmentName: '3D打印机',
+          equipmentModel: '3D-4000',
+          date: '2024-01-18',
+          startTime: '14:00',
+          duration: 3,
+          purpose: '项目研究',
+          status: 'approved',
+          createdAt: '2024-01-12 11:30:00',
+          approvalTime: '2024-01-12 11:30:00'
+        }
+      ];
+      historyReservations.value = [
+        {
+          id: 'DH' + Date.now(),
+          equipmentName: '激光切割机',
+          equipmentModel: 'Laser-3000',
+          date: '2023-12-31',
+          startTime: '10:00',
+          duration: 4,
+          purpose: '实验室建设',
+          status: 'completed',
+          createdAt: '2023-12-29 15:00:00',
+          approvalTime: '2023-12-29 15:00:00'
+        }
+      ];
+      break;
+      
+    case 'external':
+      // 校外人员预约数据
+      myReservations.value = [
+        {
+          id: 'E' + Date.now(),
+          equipmentName: '电子显微镜',
+          equipmentModel: 'SEM-1000',
+          date: '2024-01-20',
+          startTime: '10:00',
+          duration: 6,
+          purpose: '合作项目研究',
+          status: 'pending',
+          createdAt: '2024-01-13 09:00:00'
+        }
+      ];
+      historyReservations.value = [
+        {
+          id: 'EH' + Date.now(),
+          equipmentName: '光谱分析仪',
+          equipmentModel: 'Spectrum-2000',
+          date: '2023-12-26',
+          startTime: '13:00',
+          duration: 4,
+          purpose: '样品分析',
+          status: 'completed',
+          createdAt: '2023-12-24 10:00:00',
+          approvalTime: '2023-12-25 09:30:00'
+        }
+      ];
+      break;
+      
+    default:
+      // 默认数据
+      myReservations.value = [];
+      historyReservations.value = [];
   }
-]);
+  
+  // 更新总数
+  myReservationsTotal.value = myReservations.value.length;
+  historyReservationsTotal.value = historyReservations.value.length;
+};
 
 // 筛选条件
 const myFilter = reactive({
@@ -522,14 +665,16 @@ const viewDetails = (reservation) => {
 
 // 刷新我的预约
 const refreshMyReservations = () => {
-  // 模拟刷新
-  ElMessage.info('刷新成功');
+  // 重新生成数据
+  generateReservationData();
+  ElMessage.success('预约记录已刷新');
 };
 
 // 刷新历史记录
 const refreshHistory = () => {
-  // 模拟搜索
-  ElMessage.info('搜索成功');
+  // 重新生成数据
+  generateReservationData();
+  ElMessage.success('历史记录已刷新');
 };
 
 // 分页处理
@@ -589,6 +734,8 @@ const getEndTime = (startTime, duration) => {
 onMounted(() => {
   // 加载数据
   console.log('Reservation component mounted');
+  // 生成预约数据
+  generateReservationData();
 });
 </script>
 
